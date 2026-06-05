@@ -1,0 +1,279 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "evento-tarea",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2eaca5a6-4985-422f-a428-24844193f927",
+      "name": "Webhook",
+      "webhookId": "5e63f5cf-0262-4b42-9787-a153d5cb9cbd"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c46102a0-a9e2-4227-829e-ac82effbcec5",
+              "leftValue": "={{$json.body.tarea.prioridad}}",
+              "rightValue": "alta",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dec799e4-0c11-4e33-ada9-fa5ab8421604",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"1\",\n  \"mensaje\": \"Da un consejo breve para gestionar esta tarea urgente: {{$json.body.tarea.titulo}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "26d2f415-ed26-4622-8f50-3229a232bac5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fdf699b5-4ac1-4e10-b9f4-1cef5dba52b1",
+              "name": "urgente",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "3f526e71-cde7-4ac6-be31-27c593bc310b",
+              "name": "consejo",
+              "value": "={{$json.respuesta}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        624,
+        -96
+      ],
+      "id": "7993a6cc-4efa-4cc1-ad24-3dcd8f281f6b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "371324b3-83bf-4e26-8915-a9edebc0cd4d",
+              "name": "timestamp",
+              "value": "={{$now}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "35ae55ff-82e2-41bb-be01-86004bca31ac",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "58878ff5-4964-4e71-afc9-cbda919e12f0",
+              "name": "urgente",
+              "value": false,
+              "type": "boolean"
+            },
+            {
+              "id": "e06798ee-0dde-4f1c-ac8c-9c0f91c88b04",
+              "name": "consejo",
+              "value": "\"No urgente\"",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        80
+      ],
+      "id": "e6966730-c006-44c7-8f73-21449a50deb0",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1088,
+        -16
+      ],
+      "id": "55855a16-e000-48a8-9f3e-8418885f5a97",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"ok\": true,\n  \"urgente\": \"{{$json.urgente}}\",\n  \"consejo\": \"{{$json.consejo}}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1296,
+        -16
+      ],
+      "id": "b71303ae-8b0e-430f-a7e6-0132bb575a0a",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c970aa8d-7154-40f1-b689-9ea3a1a532bf",
+  "meta": {
+    "instanceId": "244a124a78d40c117c287aad364654884060cae1f284477e066c407304efe3ca"
+  },
+  "id": "ofWN1AcRDbCADbMH",
+  "tags": []
+}

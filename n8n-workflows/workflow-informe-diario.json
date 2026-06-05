@@ -1,0 +1,154 @@
+{
+  "name": "Informe Diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bf69dce4-6c70-4b98-b569-f5263302a5b6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "http://127.0.0.1:8000/tareas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "14af3653-b34e-46d9-9eb1-c8a35aceced0",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3695c95e-d7f6-46cf-8940-a233ed66f3cf",
+              "name": "fecha",
+              "value": "=={{$now}}",
+              "type": "string"
+            },
+            {
+              "id": "bdba287f-63b1-4fbf-a056-670984f76093",
+              "name": "informe",
+              "value": "{{$json.respuesta || $json.body?.respuesta}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        0
+      ],
+      "id": "5b01cfcd-8368-49aa-b468-0270b4ca4e8b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// FastAPI devuelve: { ok: true, data: [...] }\nconst tareas = data.data || [];\n\nconst porPrioridad = tareas.reduce((acc, t) => {\n  acc[t.prioridad] = (acc[t.prioridad] || 0) + 1;\n  return acc;\n}, {});\n\nreturn [{\n  json: {\n    total: tareas.length,\n    porPrioridad\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8f4a6024-858a-4b28-878c-af544980f708",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:8000/chat",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"session_id\": \"informe\",\n  \"mensaje\": \"Genera un informe ejecutivo. Tareas: {{$json.total}}. Por prioridad: {{$json.porPrioridad}}.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "ec10edb5-fa5b-4b1e-b68e-50c80d770c25",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ca1155c1-58a5-4231-9d80-fbc39a5c6e68",
+  "meta": {
+    "instanceId": "244a124a78d40c117c287aad364654884060cae1f284477e066c407304efe3ca"
+  },
+  "id": "7WvHQiyv3joXitRk",
+  "tags": []
+}
